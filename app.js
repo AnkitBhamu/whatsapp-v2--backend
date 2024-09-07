@@ -66,6 +66,15 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("user_status", (mobile) => {
+    console.log("user status request came :", mobile);
+    if (connections_live.get(mobile)) {
+      socket.emit("user_status", "online");
+    } else {
+      socket.emit("user_status", "offline");
+    }
+  });
+
   // client asks for status of a user
   socket.on("get_status_user", (data) => {
     if (connections_live.get(data.mobile)) {
@@ -76,4 +85,18 @@ io.on("connection", (socket) => {
   });
 
   //  client on sending msg to a user
+  socket.on("msg", (msg) => {
+    // sending this to the user if he/she is online and then adding it to msgstore table
+    console.log("msg came is : ", msg);
+    sendMsg(msg);
+  });
 });
+
+function sendMsg(msg) {
+  let user_socket = connections_live.get(msg.receiver);
+
+  if (user_socket) {
+    console.log("msg sent to the user");
+    user_socket.emit("msg", msg);
+  }
+}
