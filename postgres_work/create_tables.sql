@@ -11,13 +11,15 @@ CREATE TABLE USERS (
 -- Message store table
 
 CREATE TABLE MsgStore (
+    msg_id SERIAL NOT NULL,
     sender VARCHAR(255) NOT NULL,
     receiver VARCHAR(255) NOT NULL,
     msg text NOT NULL,
     msgread boolean default false,
-    opened boolean default false,
+    reached_server boolean default false,
     msgtime timestamp NOT NULL,
     msgtype VARCHAR(255) NOT NULL,
     msglink text default '',
-    msgcaption text default ''
+    msgcaption text default '',
+    mediadata BYTEA DEFAULT NULL
 )

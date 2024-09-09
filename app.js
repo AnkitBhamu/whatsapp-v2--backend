@@ -42,6 +42,7 @@ let io = new Server(httpServer, {
   cors: {
     origin: "*",
   },
+  maxHttpBufferSize: 1e8,
 });
 
 // listen on httpserver
@@ -84,6 +85,21 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("all_msg_read", (mobile) => {
+    // means the user is live notify him that all msgs are read
+    console.log("all message_read", mobile);
+    if (connections_live.get(mobile)) {
+      connections_live
+        .get(mobile)
+        .emit("all_msg_read", socket.handshake.auth.mobile);
+    }
+  });
+
+  // getting the message status of the chat
+  socket.on("msg_status", (data) => {
+    socket.emit("msg_status_answer", "not read");
+  });
+
   //  client on sending msg to a user
   socket.on("msg", (msg) => {
     // sending this to the user if he/she is online and then adding it to msgstore table
@@ -99,4 +115,13 @@ function sendMsg(msg) {
     console.log("msg sent to the user");
     user_socket.emit("msg", msg);
   }
+
+  // also add this message to the database;
+  let query = `INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime) VALUES ('${msg.sender}','${msg.receiver}','${msg.msg}','${msg.msgtype}','${msg.msgtime}' )`;
+
+  console.log("query ran will be : ", query);
+  db_client
+    .query(query)
+    .then(() => console.log("Message added to store!!"))
+    .catch((err) => console.log(err));
 }

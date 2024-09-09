@@ -1,4 +1,4 @@
-INSERT INTO msgstore (sender, receiver, msg, msgread, opened, msgtime, msgtype, msglink, msgcaption)
+INSERT INTO msgstore (sender, receiver, msg, msgread,reached_server, msgtime, msgtype, msglink, msgcaption)
 VALUES
 -- Chats with Jane Smith
 ('1234567890', '2345678901', 'Good morning, Jane! How’s your day going?', false, false, '2024-08-30 08:30:00', 'text', '', ''),
@@ -47,3 +47,11 @@ VALUES
 -- Chats with Olivia Wilson
 ('1234567890', '6789012345', 'Olivia, did you finish the client presentation?', false, false, '2024-09-03 10:00:00', 'text', '', ''),
 ('6789012345', '1234567890', 'Yes, I wrapped it up this morning.', false, false, '2024-09-03 10:05:00', 'text', '', '')
+
+
+
+
+
+INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime) VALUES ('1234567890','2345678901','hello there','text','2024-09-09T16:18:52.466Z' )
+
+INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime) VALUES ('1234567890','3456789012','hello there david','text','2024-09-09T16:22:13.203Z' )
