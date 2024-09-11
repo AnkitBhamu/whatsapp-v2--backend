@@ -15,7 +15,9 @@ router.get("/chats/fetch", (req, res) => {
 
   db_client
     .query(query)
-    .then((result) => res.json(result.rows).status(200))
+    .then((result) => {
+      res.json(result.rows).status(200);
+    })
     .catch((err) => res.json(err).status(500));
 });
 

@@ -17,9 +17,9 @@ CREATE TABLE MsgStore (
     msg text NOT NULL,
     msgread boolean default false,
     reached_server boolean default false,
-    msgtime timestamp NOT NULL,
+    msgtime timestamp with time zone NOT NULL,
     msgtype VARCHAR(255) NOT NULL,
     msglink text default '',
     msgcaption text default '',
-    mediadata BYTEA DEFAULT NULL
+    media_data BYTEA DEFAULT NULL
 )

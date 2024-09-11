@@ -67,6 +67,24 @@ io.on("connection", (socket) => {
     }
   });
 
+  // fetch all the chats at the start of connecting user
+  socket.on("fetch_chats", (data) => {
+    let user1 = data[0];
+    let user2 = data[1];
+    let query = `SELECT * FROM msgstore WHERE (sender = '${user1}' and receiver = '${user2}') or (sender = '${user2}' and receiver = '${user1}') ORDER BY msgtime DESC;`;
+    console.log("Running query is: ", query);
+
+    db_client
+      .query(query)
+      .then((result) => {
+        socket.emit("chats_fetched", {
+          users: [user1, user2],
+          chats: result.rows,
+        });
+      })
+      .catch((err) => console.log(err));
+  });
+
   socket.on("user_status", (mobile) => {
     console.log("user status request came :", mobile);
     if (connections_live.get(mobile)) {
@@ -86,7 +104,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("all_msg_read", (mobile) => {
-    // means the user is live notify him that all msgs are read
+    // means the user is live notify him that all msgs are read of him
     console.log("all message_read", mobile);
     if (connections_live.get(mobile)) {
       connections_live
@@ -117,11 +135,27 @@ function sendMsg(msg) {
   }
 
   // also add this message to the database;
-  let query = `INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime) VALUES ('${msg.sender}','${msg.receiver}','${msg.msg}','${msg.msgtype}','${msg.msgtime}' )`;
+  let query;
+  let values;
+  if (msg.msgtype === "text") {
+    query = `INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime) VALUES ('${msg.sender}','${msg.receiver}','${msg.msg}','${msg.msgtype}','${msg.msgtime}' )`;
+  } else {
+    query = `INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime,media_data) VALUES ($1 ,$2,$3,$4,$5,$6)`;
+    values = [
+      msg.sender,
+      msg.receiver,
+      msg.msg,
+      msg.msgtype,
+      msg.msgtime,
+      msg.media_data,
+    ];
+  }
+
+  // if the file_conte
 
   console.log("query ran will be : ", query);
   db_client
-    .query(query)
+    .query(query, values)
     .then(() => console.log("Message added to store!!"))
     .catch((err) => console.log(err));
 }
