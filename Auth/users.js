@@ -42,7 +42,7 @@ router.get("/user", (req, res) => {
 router.get("/user/contacts", (req, res) => {
   let user_mobile = req.query.mobile;
 
-  let query = `SELECT contacts from users where mobile = '${user_mobile}';`;
+  let query = `SELECT contacts from users where mobile = '${user_mobile}' ORDER BY name asc;`;
 
   db_client
     .query(query)

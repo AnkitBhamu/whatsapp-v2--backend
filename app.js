@@ -3,7 +3,6 @@ const express = require("express");
 const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const { Client } = require("pg");
 const db_client = require("./db_client");
 const users = require("./Auth/users");
 const chats = require("./Auth/chats");
@@ -111,6 +110,13 @@ io.on("connection", (socket) => {
         .get(mobile)
         .emit("all_msg_read", socket.handshake.auth.mobile);
     }
+
+    let query = `UPDATE msgstore set msgread = true where sender = '${mobile}'  and receiver = '${socket.handshake.auth.mobile}';`;
+    console.log("queris : ", query);
+    db_client
+      .query(query)
+      .then((response) => console.log("Successfully set"))
+      .catch((err) => console.log(err));
   });
 
   // getting the message status of the chat
