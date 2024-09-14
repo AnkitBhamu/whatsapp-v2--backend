@@ -6,6 +6,18 @@ const cors = require("cors");
 const db_client = require("./db_client");
 const users = require("./Auth/users");
 const chats = require("./Auth/chats");
+const {
+  sendVideoOffer,
+  sendVideoAnswer,
+  sendIceCandidates,
+} = require("./controllers/Videocall");
+
+const {
+  fetch_chats,
+  get_user_status,
+  all_msg_read,
+  sendMsg,
+} = require("./controllers/Chats");
 
 dotenv.config();
 
@@ -50,11 +62,11 @@ httpServer.listen(process.env.HTTP_PORT, () => {
 });
 httpServer.on("error", (err) => console.log(err));
 
-// handling websockets thing
+// number of users online
 let connections_live = new Map();
 
 io.on("connection", (socket) => {
-  console.log("Client came!");
+  console.log("Client connected!");
 
   // added to the live_socket connections
   let mobile_client = socket.handshake.auth.mobile;
@@ -66,34 +78,14 @@ io.on("connection", (socket) => {
     }
   });
 
-  // fetch all the chats at the start of connecting user
   socket.on("fetch_chats", (data) => {
-    let user1 = data[0];
-    let user2 = data[1];
-    let query = `SELECT * FROM msgstore WHERE (sender = '${user1}' and receiver = '${user2}') or (sender = '${user2}' and receiver = '${user1}') ORDER BY msgtime DESC;`;
-    console.log("Running query is: ", query);
-
-    db_client
-      .query(query)
-      .then((result) => {
-        socket.emit("chats_fetched", {
-          users: [user1, user2],
-          chats: result.rows,
-        });
-      })
-      .catch((err) => console.log(err));
+    fetch_chats(data, socket, db_client);
   });
 
   socket.on("user_status", (mobile) => {
-    console.log("user status request came :", mobile);
-    if (connections_live.get(mobile)) {
-      socket.emit("user_status", "online");
-    } else {
-      socket.emit("user_status", "offline");
-    }
+    get_user_status(mobile, socket, connections_live);
   });
 
-  // client asks for status of a user
   socket.on("get_status_user", (data) => {
     if (connections_live.get(data.mobile)) {
       socket.emit("status_answer", connections_live.get(data.mobile).connected);
@@ -103,65 +95,27 @@ io.on("connection", (socket) => {
   });
 
   socket.on("all_msg_read", (mobile) => {
-    // means the user is live notify him that all msgs are read of him
-    console.log("all message_read", mobile);
-    if (connections_live.get(mobile)) {
-      connections_live
-        .get(mobile)
-        .emit("all_msg_read", socket.handshake.auth.mobile);
-    }
-
-    let query = `UPDATE msgstore set msgread = true where sender = '${mobile}'  and receiver = '${socket.handshake.auth.mobile}';`;
-    console.log("queris : ", query);
-    db_client
-      .query(query)
-      .then((response) => console.log("Successfully set"))
-      .catch((err) => console.log(err));
+    all_msg_read(mobile, connections_live, db_client, socket);
   });
 
-  // getting the message status of the chat
   socket.on("msg_status", (data) => {
     socket.emit("msg_status_answer", "not read");
   });
 
-  //  client on sending msg to a user
   socket.on("msg", (msg) => {
-    // sending this to the user if he/she is online and then adding it to msgstore table
     console.log("msg came is : ", msg);
-    sendMsg(msg);
+    sendMsg(msg, connections_live, db_client);
+  });
+
+  socket.on("video-offer", (offer) => {
+    sendVideoOffer(offer, connections_live);
+  });
+
+  socket.on("video-answer", (answer) => {
+    sendVideoAnswer(answer, connections_live);
+  });
+
+  socket.on("ice-candidate", (candidate) => {
+    sendIceCandidates(candidate, connections_live);
   });
 });
-
-function sendMsg(msg) {
-  let user_socket = connections_live.get(msg.receiver);
-
-  if (user_socket) {
-    console.log("msg sent to the user");
-    user_socket.emit("msg", msg);
-  }
-
-  // also add this message to the database;
-  let query;
-  let values;
-  if (msg.msgtype === "text") {
-    query = `INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime) VALUES ('${msg.sender}','${msg.receiver}','${msg.msg}','${msg.msgtype}','${msg.msgtime}' )`;
-  } else {
-    query = `INSERT INTO msgstore (sender,receiver,msg,msgtype,msgtime,media_data) VALUES ($1 ,$2,$3,$4,$5,$6)`;
-    values = [
-      msg.sender,
-      msg.receiver,
-      msg.msg,
-      msg.msgtype,
-      msg.msgtime,
-      msg.media_data,
-    ];
-  }
-
-  // if the file_conte
-
-  console.log("query ran will be : ", query);
-  db_client
-    .query(query, values)
-    .then(() => console.log("Message added to store!!"))
-    .catch((err) => console.log(err));
-}
