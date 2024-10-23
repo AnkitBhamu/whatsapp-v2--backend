@@ -62,6 +62,28 @@ router.get("/user", (req, res) => {
     .catch((err) => res.status(500).json(err));
 });
 
+// for adding a user to contact list
+router.post("/user/addcontact", (req, res) => {
+  let user_mobile = req.body.mobile;
+  let addmobile = req.body.addmobile;
+
+  // wether the other user exists or not
+  let query = `SELECT name , mobile , profile_pic, about from users where mobile = '${addmobile}'`;
+  db_client.query(query).then((result) => {
+    if (result.rows.length == 0) {
+      res.status(404).json("user not exists");
+    } else {
+      let update_query = `UPDATE users set contacts = ARRAY_APPEND(contacts,'${addmobile}') where mobile = '${user_mobile}'`;
+      console.log("Update contact query is : ", update_query);
+
+      db_client
+        .query(update_query)
+        .then((result2) => res.status(200).json(result.rows[0]))
+        .catch((err) => res.status(500).json("failed"));
+    }
+  });
+});
+
 // for getting all the contacts of the user
 router.get("/user/contacts", (req, res) => {
   let user_mobile = req.query.mobile;
