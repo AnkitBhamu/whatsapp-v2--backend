@@ -59,8 +59,7 @@ router.get("/user", (req, res) => {
     .then((result) => {
       res.status(200).json(result.rows[0]);
     })
-    .catch((err) => res.status(500))
-    .json(err);
+    .catch((err) => res.status(500).json(err));
 });
 
 // for getting all the contacts of the user
