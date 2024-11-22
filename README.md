@@ -2,6 +2,7 @@
 
 # Backend specs 
  1. Backend is based on Postgres database
+ 2. Written in js using socket io , express js , and some pg2 libraries to connect to that database.
 
 
 # NOTE: U need to start this first before using whatsapp-v2 front end 
