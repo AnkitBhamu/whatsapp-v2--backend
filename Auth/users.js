@@ -16,14 +16,12 @@ function generateWebToken(payload) {
 router.post("/user/register", (req, res) => {
   let name = req.body.name;
   let mobile = req.body.mobile;
-  let email = req.body.email;
-  let password = req.body.password;
   let profile_pic = req.body.profile_pic;
   let country_code = req.body.country_code;
 
   console.log("Request body is : ", req.body);
 
-  let query = `INSERT INTO users (name , mobile , email , password ,profile_pic,country_code) values('${name}','${mobile}','${email}','${password}', '${profile_pic}','${country_code}')`;
+  let query = `INSERT INTO users (name , mobile ,profile_pic,country_code) values('${name}','${mobile}', '${profile_pic}','${country_code}')`;
   console.log("Query is : ", query);
 
   db_client
@@ -33,7 +31,6 @@ router.post("/user/register", (req, res) => {
       let response_data = {
         name: name,
         mobile: mobile,
-        email: email,
         profile_pic: profile_pic,
         country_code: country_code,
         token: token,
@@ -49,14 +46,18 @@ router.post("/user/register", (req, res) => {
 // for loging in the user
 router.get("/user", (req, res) => {
   let user_mobile = req.query.mobile;
+  let country_code = req.query.country_code;
 
-  let query = `SELECT * FROM users where mobile = '${user_mobile}';`;
+  let query = `SELECT * FROM users where mobile = '${user_mobile}' and country_code = '${country_code}';`;
 
   console.log("running query : ", query);
 
   db_client
     .query(query)
     .then((result) => {
+      if (result.rows.length === 0) {
+        res.status(500).json("User does not exists!!");
+      }
       res.status(200).json(result.rows[0]);
     })
     .catch((err) => res.status(500).json(err));
@@ -71,7 +72,7 @@ router.post("/user/addcontact", (req, res) => {
   let query = `SELECT name , mobile , profile_pic, about from users where mobile = '${addmobile}'`;
   db_client.query(query).then((result) => {
     if (result.rows.length == 0) {
-      res.status(404).json("user not exists");
+      res.status(500).json("user not exists");
     } else {
       let update_query = `UPDATE users set contacts = ARRAY_APPEND(contacts,'${addmobile}') where mobile = '${user_mobile}'`;
       console.log("Update contact query is : ", update_query);

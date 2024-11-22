@@ -2,7 +2,7 @@ function fetch_chats(data, socket, db_client) {
   let user1 = data[0];
   let user2 = data[1];
   let query = `SELECT * FROM msgstore WHERE (sender = '${user1}' and receiver = '${user2}') or (sender = '${user2}' and receiver = '${user1}') ORDER BY msgtime DESC;`;
-  console.log("Running query is: ", query);
+  // console.log("Running query is: ", query);
 
   db_client
     .query(query)
@@ -16,7 +16,7 @@ function fetch_chats(data, socket, db_client) {
 }
 
 function get_user_status(mobile, socket, connections_live) {
-  console.log("user status request came :", mobile);
+  // console.log("user status request came :", mobile);
   if (connections_live.get(mobile)) {
     socket.emit("user_status", "online");
   } else {
@@ -25,7 +25,7 @@ function get_user_status(mobile, socket, connections_live) {
 }
 
 function all_msg_read(mobile, connections_live, db_client, socket) {
-  console.log("all message_read", mobile);
+  // console.log("all message_read", mobile);
   if (connections_live.get(mobile)) {
     connections_live
       .get(mobile)
@@ -33,7 +33,7 @@ function all_msg_read(mobile, connections_live, db_client, socket) {
   }
 
   let query = `UPDATE msgstore set msgread = true where sender = '${mobile}'  and receiver = '${socket.handshake.auth.mobile}';`;
-  console.log("queris : ", query);
+  // console.log("queris : ", query);
   db_client
     .query(query)
     .then((response) => console.log("Successfully set"))
@@ -43,7 +43,7 @@ function all_msg_read(mobile, connections_live, db_client, socket) {
 function sendMsg(msg, connections_live, db_client) {
   let user_socket = connections_live.get(msg.receiver);
   if (user_socket) {
-    console.log("msg sent to the user");
+    // console.log("msg sent to the user");
     user_socket.emit("msg", msg);
   }
 
@@ -64,7 +64,7 @@ function sendMsg(msg, connections_live, db_client) {
     ];
   }
 
-  console.log("query ran will be : ", query);
+  // console.log("query ran will be : ", query);
   db_client
     .query(query, values)
     .then(() => console.log("Message added to store!!"))

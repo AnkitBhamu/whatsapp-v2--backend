@@ -2,8 +2,6 @@
 CREATE TABLE USERS (
     name VARCHAR(255) DEFAULT '',
     mobile VARCHAR(255) NOT NULL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    "password" VARCHAR(255) NOT NULL,
     contacts VARCHAR[] default '{}',
     profile_pic VARCHAR(255) default '',
     about  VARCHAR(255) DEFAULT ''

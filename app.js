@@ -103,7 +103,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("msg", (msg) => {
-    console.log("msg came is : ", msg);
     sendMsg(msg, connections_live, db_client);
   });
 
