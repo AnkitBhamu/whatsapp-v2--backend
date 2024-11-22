@@ -10,6 +10,7 @@ function initialise_client(user, password, database, port, host) {
     database: process.env.DB_NAME,
     port: process.env.DB_PORT,
     host: process.env.DB_HOST,
+    ssl: true,
   });
 
   return client;
